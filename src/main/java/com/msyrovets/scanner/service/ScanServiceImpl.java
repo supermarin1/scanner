@@ -19,14 +19,18 @@ import java.util.stream.Collectors;
 public class ScanServiceImpl implements ScanService {
     private final List<ScanOutputData> outputData = new ArrayList<>();
     private int maxLinksCount;
+    private String targetText;
 
     private Semaphore semaphore;
 
 
     @Override
     public List<ScanOutputData> scanInputData(ScanInputData scanInputData) {
+        outputData.clear();
+
         semaphore = new Semaphore(scanInputData.getMaxThreadsCount(), true);
         maxLinksCount = scanInputData.getMaxUrlsCount();
+        targetText = scanInputData.getTargetText();
 
         //add first link to the list with WAIT status
         ScanOutputData scanOutputData = new ScanOutputData();
@@ -86,7 +90,9 @@ public class ScanServiceImpl implements ScanService {
                             }
                         }
 
-                        // todo search target text
+                        //search text
+                        Elements elements = doc.select("body:contains(" + targetText + ")");
+                        data.setIsTargetTextFound(elements.size() > 0);
                         data.setScanStatus(ScanStatus.SUCCESS);
                     } catch (IOException e) {
                         data.setScanStatus(ScanStatus.FAILED);
