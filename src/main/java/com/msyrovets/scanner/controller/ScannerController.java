@@ -27,14 +27,14 @@ public class ScannerController {
         return "start-page";
     }
 
-    @PostMapping("/startScan")
+    @PostMapping("/result")
     public String startScan(@ModelAttribute ScanInputData scanInputData, Model model) {
         List<ScanOutputData> outputData = scanService.scanInputData(scanInputData);
         model.addAttribute("outputData", outputData);
         return "scanner-results";
     }
 
-    @GetMapping("/update")
+    @GetMapping("/result")
     public String startScan(Model model) {
         List<ScanOutputData> outputData = scanService.getScanData();
         model.addAttribute("outputData", outputData);

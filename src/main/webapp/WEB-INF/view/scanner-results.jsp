@@ -4,11 +4,12 @@
 <html>
 <head>
     <title>URL Scanner Results</title>
-    <script>setTimeout(function(){location.href="update"} , 1000);   </script>
+    <script>setTimeout(function(){location.href="result"} , 1000);   </script>
 </head>
 <body>
-<br><br>
-<input type="button" value="Update" onclick="window.location.href='update'; return false;"/>
+<h2>URL Scanner Result</h2>
+<br>
+<input type="button" value="Update" onclick="window.location.href='result'; return false;"/>
 <input type="button" value="Back to start page" onclick="window.location.href='/'; return false;"/>
 <br><br>
 <div id="content">

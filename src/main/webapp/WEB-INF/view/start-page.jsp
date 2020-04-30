@@ -3,11 +3,11 @@
 <html>
 <head>
     <title>URL Scanner</title>
-    URL Scanner
 </head>
 <body>
+<h2>URL Scanner</h2>
 <%--@elvariable id="scanInputData" type="com.msyrovets.scanner.model.ScanInputData"--%>
-<form:form action="startScan" modelAttribute="scanInputData">
+<form:form action="result" modelAttribute="scanInputData">
     <br>
     URL: <form:input path="url"/>
     <br><br>
