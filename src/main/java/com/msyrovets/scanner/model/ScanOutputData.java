@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 public class ScanOutputData {
     private String url;
     private ScanStatus scanStatus;
-    private Boolean isTargetTestFound;
+    private Boolean isTargetTextFound;
     private String errorMessage;
 }

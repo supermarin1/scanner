@@ -12,7 +12,7 @@
 <input type="button" value="Back to start page" onclick="window.location.href='/'; return false;"/>
 <br><br>
 <div id="content">
-    <table>
+    <table border="1" cellspacing="2" cellpadding="5">
         <tr>
             <th>URL</th>
             <th>STATUS</th>
@@ -26,7 +26,7 @@
             <tr>
                 <td>${outputData.url}</td>
                 <td>${outputData.scanStatus}</td>
-                <td>${outputData.isTargetTestFound}</td>
+                <td>${outputData.isTargetTextFound}</td>
                 <td>${outputData.errorMessage}</td>
             </tr>
 
