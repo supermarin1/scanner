@@ -4,7 +4,7 @@
 <html>
 <head>
     <title>URL Scanner Results</title>
-    URL Scanner Results
+    <script>setTimeout(function(){location.href="update"} , 1000);   </script>
 </head>
 <body>
 <br><br>
