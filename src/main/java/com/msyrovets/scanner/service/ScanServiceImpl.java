@@ -19,18 +19,15 @@ import java.util.stream.Collectors;
 public class ScanServiceImpl implements ScanService {
     private final List<ScanOutputData> outputData = new ArrayList<>();
     private int maxLinksCount;
-    private String targetText;
-
-    private Semaphore semaphore;
 
 
     @Override
     public List<ScanOutputData> scanInputData(ScanInputData scanInputData) {
         outputData.clear();
 
-        semaphore = new Semaphore(scanInputData.getMaxThreadsCount(), true);
+        Semaphore semaphore = new Semaphore(scanInputData.getMaxThreadsCount(), true);
         maxLinksCount = scanInputData.getMaxUrlsCount();
-        targetText = scanInputData.getTargetText();
+        String targetText = scanInputData.getTargetText();
 
         //add first link to the list with WAIT status
         ScanOutputData scanOutputData = new ScanOutputData();
@@ -39,7 +36,8 @@ public class ScanServiceImpl implements ScanService {
         outputData.add(scanOutputData);
         maxLinksCount--;
 
-        scan();
+        //start scan
+        scan(semaphore, outputData, targetText);
 
         return outputData;
     }
@@ -49,65 +47,88 @@ public class ScanServiceImpl implements ScanService {
         return outputData;
     }
 
-    public void scan() {
+    @Override
+    public boolean isScanningComplete() {
+        boolean hasNoWaiting = outputData.stream().noneMatch(data -> data.getScanStatus().equals(ScanStatus.WAITING));
+        boolean hasNoProcess= outputData.stream().noneMatch(data -> data.getScanStatus().equals(ScanStatus.PROCESS));
+        return hasNoWaiting && hasNoProcess;
+    }
+
+    public void scan(Semaphore semaphore, List<ScanOutputData> outputData, String targetText) {
         synchronized (outputData) {
             List<ScanOutputData> waitList = outputData
                     .stream()
                     .filter(data -> data.getScanStatus().equals(ScanStatus.WAITING))
+                    .filter(data -> !data.isChecking())
                     .collect(Collectors.toList());
+
             if (waitList.size() != 0) {
-                waitList.forEach(this::startNewLinkCheckThread);
+                waitList.forEach(
+                        scanOutputData -> startNewLinkCheckThread(semaphore, scanOutputData, targetText, outputData));
             }
         }
     }
 
-    private void startNewLinkCheckThread(ScanOutputData data) {
+    private void startNewLinkCheckThread(Semaphore semaphore, ScanOutputData data, String targetText,
+                                         List<ScanOutputData> outputData) {
         String url = data.getUrl();
+
+        data.setChecking(true);
 
         new Thread(() -> {
             try {
                 semaphore.acquire();
-                if (data.getScanStatus().equals(ScanStatus.WAITING)) {
                     data.setScanStatus(ScanStatus.PROCESS);
+
                     try {
                         Document doc = Jsoup.connect(url).get();
 
                         //search links
-                        Elements links = doc.select("a");
-                        synchronized (outputData) {
-                            for (Element link : links) {
-                                if (maxLinksCount != 0) {
-                                    String linkUrl = link.attr("abs:href");
-                                    //add new waiting data
-                                    if (!linkUrl.isEmpty()) {
-                                        ScanOutputData scanOutputDataToWait = new ScanOutputData();
-                                        scanOutputDataToWait.setUrl(linkUrl);
-                                        scanOutputDataToWait.setScanStatus(ScanStatus.WAITING);
-                                        outputData.add(scanOutputDataToWait);
-                                        maxLinksCount--;
-                                    }
-                                }
-                            }
-                        }
+                        searchLinks(doc, outputData);
 
                         //search text
-                        Elements elements = doc.select("body:contains(" + targetText + ")");
-                        data.setIsTargetTextFound(elements.size() > 0);
+                        data.setIsTargetTextFound(isContainTargetText(doc, targetText));
                         data.setScanStatus(ScanStatus.SUCCESS);
                     } catch (IOException e) {
                         data.setScanStatus(ScanStatus.FAILED);
                         data.setErrorMessage("Can't connect. " + e.getMessage());
                     }
-                }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                data.setScanStatus(ScanStatus.FAILED);
+                data.setErrorMessage("Can't connect. " + e.getMessage());
             } finally {
                 semaphore.release();
             }
 
-            //start new scan
-            scan();
+            scan(semaphore, outputData, targetText);
 
         }).start();
     }
+
+    public void searchLinks(Document doc, List<ScanOutputData> outputData) {
+        Elements links = doc.select("a");
+        synchronized (outputData) {
+            for (Element link : links) {
+                if (maxLinksCount != 0) {
+                    String linkUrl = link.attr("abs:href");
+                    //add new waiting data
+                    if (!linkUrl.isEmpty()) {
+                        ScanOutputData scanOutputDataToWait = new ScanOutputData();
+                        scanOutputDataToWait.setUrl(linkUrl);
+                        scanOutputDataToWait.setScanStatus(ScanStatus.WAITING);
+                        outputData.add(scanOutputDataToWait);
+                        maxLinksCount--;
+                    }
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public boolean isContainTargetText(Document doc, String targetText) {
+        Elements elements = doc.select("body:contains(" + targetText + ")");
+        return elements.size() > 0;
+    }
+
 }

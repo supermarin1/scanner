@@ -1,5 +1,6 @@
 package com.msyrovets.scanner.controller;
 
+import com.msyrovets.scanner.enums.ScanStatus;
 import com.msyrovets.scanner.model.ScanInputData;
 import com.msyrovets.scanner.model.ScanOutputData;
 import com.msyrovets.scanner.service.ScanService;
@@ -53,6 +54,7 @@ public class ScannerController {
     public String startScan(Model model) {
         List<ScanOutputData> outputData = scanService.getScanData();
         model.addAttribute("outputData", outputData);
+        model.addAttribute("isDone", scanService.isScanningComplete());
         return "scanner-results";
     }
 }

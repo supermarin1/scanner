@@ -4,11 +4,21 @@
 <html>
 <head>
     <title>URL Scanner Results</title>
-    <script>setTimeout(function(){location.href="result"} , 1000);   </script>
+    <%--@elvariable id="isDone" type="java.lang.Boolean"--%>
+    <c:set var="isDone" scope="request" value="${isDone}"/>
+    <script>
+        let isDone = <c:out value="${isDone != null && isDone ? 'true' : 'false'}"/>;
+        if (!isDone) {
+            setTimeout(function () {
+                window.location.href = "result"
+            }, 1000);
+        }
+    </script>
 </head>
 <body>
 <h2>URL Scanner Result</h2>
-<br>
+<c:out value="${isDone != null && isDone ? 'Checking finished.' : 'Checking in progress..' }"/>
+<br><br>
 <input type="button" value="Update" onclick="window.location.href='result'; return false;"/>
 <input type="button" value="Back to start page" onclick="window.location.href='/'; return false;"/>
 <br><br>
