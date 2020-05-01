@@ -54,6 +54,11 @@ public class ScanServiceImpl implements ScanService {
         return hasNoWaiting && hasNoProcess;
     }
 
+    @Override
+    public void setMaxLinksCount(int maxLinksCount) {
+        this.maxLinksCount = maxLinksCount;
+    }
+
     public void scan(Semaphore semaphore, List<ScanOutputData> outputData, String targetText) {
         synchronized (outputData) {
             List<ScanOutputData> waitList = outputData

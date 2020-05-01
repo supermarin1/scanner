@@ -12,6 +12,8 @@ public interface ScanService {
     List<ScanOutputData> getScanData();
     boolean isScanningComplete();
 
+    void setMaxLinksCount(int maxLinksCount);
+
     void scan(Semaphore semaphore, List<ScanOutputData> outputData, String targetText);
     void searchLinks(Document doc, List<ScanOutputData> outputData);
     boolean isContainTargetText(Document doc, String targetText);
